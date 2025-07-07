@@ -1,0 +1,114 @@
+# Long-Term Investment Bot Configuration
+
+# Portfolio Allocation
+allocation:
+  core_etfs: 0.70  # 70% in core index ETFs
+  satellite_stocks: 0.30  # 30% in selected stocks
+
+# Core ETF Holdings (splits within the 70%)
+core_etfs:
+  VTI: 0.60  # Total Stock Market ETF
+  SPY: 0.40  # S&P 500 ETF
+
+# Stock Selection Parameters
+stock_selection:
+  max_stocks: 20  # Number of stocks in satellite basket
+  rebalance_frequency: "monthly"  # monthly, quarterly
+  rebalance_day: 1  # First trading day of month
+
+# Fundamental Scorecard Weights (must sum to 1.0)
+scoring_weights:
+  roe_5yr: 0.25      # 5-year average ROE
+  revenue_cagr_5yr: 0.25  # 5-year revenue CAGR
+  fcf_margin: 0.20   # Free cash flow margin
+  peg_ratio: 0.15    # Forward PEG ratio (inverted)
+  gross_margin_stability: 0.15  # Moat proxy (inverse std dev)
+
+# Hard Filters (all must pass)
+hard_filters:
+  min_market_cap: 2000000000  # $2B minimum market cap
+  min_ttm_net_income: 0  # Positive TTM net income
+  min_revenue_growth_yoy: 0.05  # 5% minimum YoY revenue growth
+  max_debt_to_equity: 1.0  # Maximum debt-to-equity ratio
+
+# Sell/Trim Rules
+sell_rules:
+  broken_thesis:
+    negative_revenue_growth: true
+    bottom_percentile_threshold: 0.30  # Bottom 30% of universe
+  
+  overvaluation:
+    industry_pe_percentile: 0.90  # 90th percentile of industry P/E
+    max_peg_ratio: 2.5
+    trim_percentage: 0.50  # Trim to 50% of position
+  
+  concentration:
+    max_position_weight: 0.20  # 20% max position size
+    trim_target_weight: 0.15   # Trim to 15%
+  
+  replacement:
+    score_improvement_threshold: 25  # 25 point improvement needed
+
+# Sentiment Analysis (optional)
+sentiment:
+  enabled: false
+  sources:
+    reddit: true
+    cnbc: true
+  sentiment_model: "vader"  # vader, finbert
+  exuberance_threshold: 0.90  # Top 10% sentiment
+  consecutive_days_threshold: 10
+
+# Trading Parameters
+trading:
+  order_type: "limit_at_open"
+  slippage_tolerance: 0.005  # 0.5% slippage tolerance
+  fractional_shares: true
+  reinvest_dividends: true
+
+# Data Sources
+data_sources:
+  primary: "alpha_vantage"  # alpha_vantage, finnhub, yahoo
+  backup: "yahoo"
+  api_keys:
+    alpha_vantage: "YOUR_API_KEY_HERE"
+    finnhub: "YOUR_API_KEY_HERE"
+
+# Alpaca Broker Settings
+alpaca:
+  api_key: "YOUR_ALPACA_API_KEY"
+  secret_key: "YOUR_ALPACA_SECRET_KEY"
+  base_url: "https://paper-api.alpaca.markets"  # Paper trading by default
+  paper_trading: true
+
+# Backtesting Parameters
+backtest:
+  start_date: "2004-01-01"
+  end_date: "2024-12-31"
+  initial_capital: 100000
+  benchmark: "SPY"
+
+# Logging and Notifications
+logging:
+  level: "INFO"
+  log_trades: true
+  log_directory: "logs"
+  
+notifications:
+  slack:
+    enabled: false
+    webhook_url: "YOUR_SLACK_WEBHOOK_URL"
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    username: "your_email@gmail.com"
+    password: "your_app_password"
+    recipients: ["recipient@gmail.com"]
+
+# Risk Management
+risk_management:
+  max_portfolio_volatility: 0.20  # 20% max portfolio volatility
+  max_sector_concentration: 0.30   # 30% max in any sector
+  stop_loss_enabled: false
+  stop_loss_percentage: 0.15  # 15% stop loss

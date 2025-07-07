@@ -1,0 +1,1 @@
+# Tests package for Long-Term Investment Bot

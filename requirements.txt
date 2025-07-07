@@ -1,0 +1,32 @@
+# Long-Term Investment Bot - Essential Dependencies
+# Core trading and data packages
+alpaca-trade-api>=3.0.0
+alpha-vantage>=3.0.0
+yfinance>=0.2.0
+
+# Data analysis and computation
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Web requests and APIs
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# Configuration and utilities
+PyYAML>=6.0
+python-dotenv>=1.0.0
+
+# Sentiment analysis
+vaderSentiment>=3.3.0
+
+# Visualization (optional)
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Testing
+pytest>=7.4.0
+
+# Code formatting
+black>=23.0.0
+ruff>=0.1.0
