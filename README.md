@@ -1,366 +1,280 @@
-# Long-Term Investment Bot
+# Long-Term Investment System powered by Fin-R1
 
-A sophisticated Python-based investment bot designed for long-term wealth building through systematic stock selection, portfolio management, and risk control. The bot implements a fundamental analysis approach combined with modern portfolio theory to compound capital over 5-10 year horizons.
+A comprehensive investment analysis system that leverages the Fin-R1 financial AI model to make intelligent long-term investment decisions. This system combines real-time financial data collection with advanced AI analysis to provide actionable investment recommendations.
 
-## Strategy Overview
+## 🚀 Features
 
-The bot follows a disciplined investment approach:
+- **AI-Powered Analysis**: Uses Fin-R1 model for sophisticated financial reasoning
+- **Real-Time Data**: Integrates with Yahoo Finance and other financial APIs
+- **Company Analysis**: Deep dive into individual companies with comprehensive metrics
+- **Portfolio Management**: Analyze and optimize existing portfolios
+- **Investment Screening**: Find opportunities based on custom criteria
+- **Sector Analysis**: Understand sector trends and opportunities
+- **Risk Assessment**: Comprehensive risk evaluation and warnings
+- **ESG Integration**: Environmental, Social, and Governance considerations
 
-- **70% Core Holdings**: Broad-market ETFs (VTI, VXUS) for market exposure
-- **30% Satellite Holdings**: High-quality individual stocks selected via fundamental analysis
-- **Monthly Rebalancing**: Systematic review and rebalancing on first trading day of each month
-- **Fundamental Scorecard**: Multi-factor scoring system for stock selection
-- **Risk Management**: Built-in sell rules, concentration limits, and position sizing
-- **Optional Sentiment Overlay**: Contrarian sentiment analysis for enhanced timing
+## 📋 Prerequisites
 
-## Key Features
+1. **Fin-R1 Model**: Download and set up the Fin-R1 model locally
+2. **Python 3.8+**: Ensure you have Python 3.8 or higher installed
+3. **vLLM Server**: For serving the Fin-R1 model
 
-### 🎯 **Automated Monthly Workflow**
-- Fetches updated fundamentals for all US stocks
-- Scores stocks using proprietary fundamental scorecard
-- Selects top-ranked stocks passing hard filters
-- Rebalances portfolio to target allocations
-- Executes trades via Alpaca API
+## 🛠️ Installation
 
-### 📊 **Fundamental Scorecard**
-- **Hard Filters**: Market cap >$2B, positive earnings, revenue growth >5%, debt/equity <1.0
-- **Scoring Metrics**: 5-year ROE, revenue CAGR, FCF margin, PEG ratio, gross margin stability
-- **Composite Score**: Weighted combination of all metrics (0-4 scale)
-
-### 🛡️ **Risk Management**
-- **Broken Thesis**: Sell stocks with negative revenue growth + low scores
-- **Overvaluation**: Trim positions with extreme valuations (PE >90th percentile + PEG >2.5)
-- **Concentration**: Limit individual positions to 20% of portfolio
-- **Better Replacement**: Swap holdings when significantly better opportunities arise
-
-### 📈 **Backtesting & Analytics**
-- Vectorized backtester covering 20+ years of data
-- Performance metrics: CAGR, Sharpe ratio, max drawdown, alpha, beta
-- Trade analysis and turnover statistics
-- Risk-adjusted return calculations
-
-### 🔧 **Configuration & Extensibility**
-- YAML-based configuration for all parameters
-- Modular architecture for easy customization
-- Command-line interface for different modes
-- Comprehensive logging and monitoring
-
-## Installation
-
-### Prerequisites
-- Python 3.11 or higher
-- Alpaca brokerage account (paper trading enabled by default)
-- Free API keys for data sources (Alpha Vantage, Finnhub)
-
-### Setup Steps
-
-1. **Clone the repository**
+1. **Clone or navigate to the project directory**:
    ```bash
-   git clone <repository-url>
-   cd DayTradeBot
+   cd LongTermTrade
    ```
 
-2. **Create virtual environment**
+2. **Create and activate a virtual environment**:
    ```bash
-   python -m venv .venv
-   .venv\Scripts\activate  # Windows
-   # source .venv/bin/activate  # Linux/Mac
+   python -m venv .myenv
+   source .myenv/bin/activate  # On Windows: .myenv\Scripts\activate
    ```
 
-3. **Install dependencies**
+3. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Configure environment variables**
-   Create a `.env` file in the project root:
-   ```env
-   # Alpaca API (Paper Trading)
-   ALPACA_API_KEY=your_paper_api_key
-   ALPACA_SECRET_KEY=your_paper_secret_key
-   ALPACA_BASE_URL=https://paper-api.alpaca.markets
-   
-   # Data Sources
-   ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
-   FINNHUB_API_KEY=your_finnhub_key
-   
-   # Optional: Notifications
-   SLACK_WEBHOOK_URL=your_slack_webhook
-   EMAIL_SMTP_SERVER=smtp.gmail.com
-   EMAIL_USERNAME=your_email
-   EMAIL_PASSWORD=your_app_password
-   ```
-
-5. **Test the installation**
+4. **Set up the Fin-R1 model**:
    ```bash
-   python -m pytest tests/ -v
+   # Start the vLLM server with Fin-R1
+   vllm serve /Users/anavmadan/Desktop/LongTermTrade/Fin-R1 \
+     --host 0.0.0.0 \
+     --port 8000 \
+     --api-key your-api-key
    ```
 
-## Usage
+## 🎯 Quick Start
 
-### Command Line Interface
-
-The bot supports multiple operation modes:
-
+### 1. Create Sample Files
 ```bash
-# Run backtest (default: 2004-2024)
-python main.py --backtest
-
-# Run backtest with custom date range
-python main.py --backtest --start-date 2020-01-01 --end-date 2023-12-31
-
-# Paper trading mode (safe for testing)
-python main.py --paper
-
-# Live trading mode (real money - use with caution)
-python main.py --live
-
-# Force immediate rebalancing
-python main.py --paper --rebalance-now
-
-# Display portfolio summary
-python main.py --paper --summary
-
-# Check market status
-python main.py --market-status
-
-# Run with custom config file
-python main.py --config custom_config.yml --paper
+python long_term_trader.py create-samples
 ```
+This creates `sample_portfolio.json` and `sample_criteria.json` files.
 
-### Configuration
-
-The bot is configured via `config.yml`. Key sections include:
-
-```yaml
-portfolio:
-  core_allocation: 0.70        # 70% in ETFs
-  satellite_allocation: 0.30   # 30% in individual stocks
-  core_etfs:
-    VTI: 0.60                  # 60% of core in VTI
-    VXUS: 0.40                 # 40% of core in VXUS
-  max_satellite_stocks: 20     # Max number of individual stocks
-
-scoring:
-  weights:
-    roe_5yr: 0.25              # 5-year average ROE weight
-    revenue_cagr_5yr: 0.25     # Revenue CAGR weight
-    fcf_margin: 0.20           # Free cash flow margin weight
-    peg_ratio: 0.15            # PEG ratio weight (lower is better)
-    gross_margin_stability: 0.15 # Gross margin consistency weight
-
-  hard_filters:
-    min_market_cap: 2000000000 # $2B minimum market cap
-    min_net_income: 0          # Positive earnings required
-    min_revenue_growth: 0.05   # 5% minimum revenue growth
-    max_debt_to_equity: 1.0    # Maximum debt-to-equity ratio
-```
-
-### Automated Scheduling
-
-For production use, set up automated execution:
-
-**Windows Task Scheduler:**
+### 2. Analyze a Single Company
 ```bash
-# Create a batch file (run_bot.bat)
-cd C:\path\to\DayTradeBot
-.venv\Scripts\activate
-python main.py --paper
+# Basic analysis
+python long_term_trader.py analyze AAPL
 
-# Schedule to run on first trading day of each month
+# Analysis with custom investment amount
+python long_term_trader.py analyze AAPL --amount 25000
 ```
 
-**Linux/Mac Cron:**
+### 3. Analyze Your Portfolio
 ```bash
-# Add to crontab (crontab -e)
-# Run at 9:35 AM ET on first weekday of each month
-35 9 1-7 * * [ "$(date +\%u)" -le 5 ] && cd /path/to/DayTradeBot && .venv/bin/activate && python main.py --paper
+python long_term_trader.py portfolio sample_portfolio.json
 ```
 
-## Architecture
-
-The bot follows a modular design pattern:
-
-```
-DayTradeBot/
-├── main.py              # Main orchestrator and CLI
-├── config.yml           # Configuration file
-├── data.py              # Data fetching and processing
-├── scoring.py           # Fundamental analysis and scoring
-├── portfolio.py         # Portfolio management and allocation
-├── broker.py            # Alpaca API integration
-├── sentiment.py         # Sentiment analysis (optional)
-├── backtest.py          # Backtesting engine
-├── tests/               # Unit tests
-│   ├── test_scoring.py
-│   ├── test_portfolio.py
-│   └── test_data.py
-├── logs/                # Log files and backtest results
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
+### 4. Screen for Investment Opportunities
+```bash
+python long_term_trader.py screen sample_criteria.json --max-results 15
 ```
 
-### Key Components
-
-- **DataProvider**: Fetches fundamental and price data from free sources
-- **FundamentalScorer**: Implements scoring algorithm and sell conditions
-- **PortfolioManager**: Handles allocation, rebalancing, and position sizing
-- **AlpacaBroker**: Manages order execution and account information
-- **SentimentAnalyzer**: Optional contrarian sentiment overlay
-- **LongTermBacktester**: Vectorized backtesting engine
-
-## Performance Metrics
-
-The bot tracks comprehensive performance metrics:
-
-- **Returns**: CAGR, total return, annual returns
-- **Risk**: Volatility, max drawdown, downside deviation
-- **Risk-Adjusted**: Sharpe ratio, Sortino ratio, Calmar ratio
-- **Benchmark**: Alpha, beta, tracking error vs. market
-- **Trading**: Turnover, win rate, average holding period
-
-## Data Sources
-
-The bot uses free data sources to keep costs low:
-
-- **Alpha Vantage**: Fundamental data, company overviews
-- **Yahoo Finance**: Historical prices, basic fundamentals
-- **Finnhub**: Industry peers, additional fundamental data
-- **Reddit/News APIs**: Sentiment data (optional)
-
-## Risk Considerations
-
-⚠️ **Important Disclaimers:**
-
-- This software is for educational and research purposes
-- Past performance does not guarantee future results
-- All investments carry risk of loss
-- Start with paper trading to understand the system
-- Never invest more than you can afford to lose
-- Consider consulting with a financial advisor
-
-### Risk Management Features
-
-- **Paper Trading Default**: Safe testing environment
-- **Position Limits**: Maximum 20% in any single stock
-- **Diversification**: Forced diversification across 20+ holdings
-- **Systematic Selling**: Automated sell rules for risk control
-- **Cash Buffer**: Maintains small cash position for opportunities
-
-## Customization
-
-### Adding New Scoring Factors
-
-```python
-# In scoring.py, add new scoring method
-def _score_new_factor(self, value):
-    """Score a new fundamental factor."""
-    if value >= 0.20: return 4
-    elif value >= 0.15: return 3
-    elif value >= 0.10: return 2
-    elif value >= 0.05: return 1
-    else: return 0
-
-# Update calculate_scores method to include new factor
+### 5. Sector Analysis
+```bash
+python long_term_trader.py sector Technology
+python long_term_trader.py sector Healthcare
 ```
 
-### Custom Sell Rules
-
-```python
-# In scoring.py, modify check_sell_conditions
-def check_sell_conditions(self, stock_data, universe_data, industry_data, portfolio_weight):
-    # Add custom sell logic
-    custom_sell = self._check_custom_condition(stock_data)
-    
-    return {
-        'broken_thesis': broken_thesis,
-        'overvaluation': overvaluation,
-        'concentration': concentration,
-        'custom_rule': custom_sell  # New rule
-    }
+### 6. Compare Companies
+```bash
+python long_term_trader.py compare AAPL MSFT GOOGL AMZN
 ```
 
-### Alternative Data Sources
+## 📁 File Formats
 
-```python
-# In data.py, add new data provider
-class CustomDataProvider:
-    def get_fundamentals(self, symbol):
-        # Implement custom data fetching
-        pass
+### Portfolio File (JSON)
+```json
+{
+  "AAPL": 15000,
+  "MSFT": 12000,
+  "GOOGL": 10000,
+  "AMZN": 8000,
+  "TSLA": 5000
+}
 ```
 
-## Troubleshooting
+### Screening Criteria File (JSON)
+```json
+{
+  "min_market_cap": 1000000000,
+  "max_pe": 30,
+  "min_roe": 0.15,
+  "max_debt_to_equity": 1.0,
+  "sectors": ["Technology", "Healthcare", "Consumer Discretionary"]
+}
+```
 
-### Common Issues
+## 🏗️ System Architecture
 
-1. **API Rate Limits**
-   - Increase `rate_limit_delay` in config
-   - Use multiple API keys if available
-   - Consider caching data locally
+### Core Components
 
-2. **Missing Data**
-   - Check API key validity
-   - Verify symbol exists and is actively traded
-   - Review data source status
+1. **FinR1Client** (`fin_r1_client.py`)
+   - Interfaces with the Fin-R1 model
+   - Handles AI-powered financial analysis
+   - Provides structured prompts for different analysis types
 
-3. **Order Execution Failures**
-   - Ensure sufficient buying power
-   - Check market hours
-   - Verify Alpaca account status
+2. **DataCollector** (`data_collector.py`)
+   - Collects real-time financial data
+   - Integrates with Yahoo Finance API
+   - Provides market conditions and company fundamentals
 
-4. **Performance Issues**
-   - Reduce universe size for faster processing
-   - Use SSD storage for better I/O
-   - Consider running on cloud instance
+3. **InvestmentAnalyzer** (`investment_analyzer.py`)
+   - Main analysis engine
+   - Combines data collection with AI analysis
+   - Generates structured investment recommendations
+
+4. **LongTermTrader** (`long_term_trader.py`)
+   - Command-line interface
+   - Orchestrates analysis workflows
+   - Provides formatted output
+
+### Data Flow
+```
+[Financial APIs] → [DataCollector] → [InvestmentAnalyzer] → [Fin-R1 Model] → [Recommendations]
+```
+
+## 📊 Analysis Types
+
+### Company Analysis
+- Financial health assessment
+- Valuation analysis
+- Growth potential evaluation
+- Risk factor identification
+- ESG considerations
+- Competitive positioning
+
+### Portfolio Analysis
+- Diversification scoring
+- Risk level assessment
+- Expected return calculation
+- Sector allocation analysis
+- Rebalancing recommendations
+- Performance optimization
+
+### Screening Analysis
+- Custom criteria filtering
+- Fundamental analysis
+- Ranking by confidence scores
+- Risk-adjusted recommendations
+
+### Sector Analysis
+- Industry trends and outlook
+- Competitive landscape
+- Growth drivers and risks
+- Top investment picks
+- Valuation comparisons
+
+## 🔧 Configuration
+
+### Environment Variables
+Create a `.env` file:
+```env
+FIN_R1_API_URL=http://localhost:8000/v1
+FIN_R1_API_KEY=your-api-key
+NEWS_API_KEY=your-news-api-key  # Optional
+ALPHA_VANTAGE_KEY=your-av-key    # Optional
+```
 
 ### Logging
+Logs are written to `long_term_trader.log` and console output.
 
-Comprehensive logging is available in the `logs/` directory:
+## 📈 Example Output
 
-- `bot.log`: General application logs
-- `trades.log`: Trade execution details
-- `backtest_YYYYMMDD.log`: Backtest results
-- `errors.log`: Error tracking
+### Company Analysis
+```
+🔍 Analyzing AAPL for long-term investment...
+============================================================
 
-## Contributing
+🏢 Company: Apple Inc. (AAPL)
+📊 Recommendation: BUY
+🎯 Confidence Score: 87%
+⏰ Time Horizon: Long
+💰 Target Price: $195.50
 
-Contributions are welcome! Please:
+📈 Scores:
+- Financial Health: 92/100
+- Valuation: 78/100
+- Growth Potential: 85/100
+- Market Position: 95/100
+
+💡 Key Growth Drivers:
+- Services revenue expansion
+- iPhone upgrade cycles
+- Emerging market penetration
+
+⚠️  Risk Factors:
+- Regulatory pressures
+- Supply chain dependencies
+- Market saturation
+```
+
+## 🛡️ Risk Management
+
+The system provides comprehensive risk assessment:
+- **Market Risk**: Volatility and correlation analysis
+- **Company Risk**: Financial health and business model risks
+- **Sector Risk**: Industry-specific challenges
+- **Regulatory Risk**: Compliance and policy changes
+- **ESG Risk**: Environmental and governance factors
+
+## 🔄 Continuous Monitoring
+
+For production use, consider:
+- Regular portfolio rebalancing
+- Market condition monitoring
+- News sentiment analysis
+- Performance tracking
+- Risk limit enforcement
+
+## 🧪 Testing
+
+Run the test suite:
+```bash
+pytest tests/
+```
+
+## 📝 Logging and Monitoring
+
+- All analysis results are logged
+- Performance metrics tracked
+- Error handling and recovery
+- Audit trail for decisions
+
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure code passes `ruff` and `black` formatting
+3. Make your changes
+4. Add tests
 5. Submit a pull request
 
-### Development Setup
+## ⚠️ Disclaimer
 
-```bash
-# Install development dependencies
-pip install -r requirements.txt
-pip install ruff black pytest-cov
+**This system is for educational and research purposes only. It does not constitute financial advice. Always consult with qualified financial professionals before making investment decisions. Past performance does not guarantee future results.**
 
-# Run tests with coverage
-pytest tests/ --cov=. --cov-report=html
-
-# Format code
-black .
-ruff check . --fix
-```
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Support
+## 🆘 Support
 
-For questions, issues, or contributions:
+For issues and questions:
+1. Check the logs in `long_term_trader.log`
+2. Ensure Fin-R1 server is running
+3. Verify API connectivity
+4. Review sample files format
 
-- Open an issue on GitHub
-- Review the documentation
-- Check existing issues for solutions
-- Consider the troubleshooting section
+## 🔮 Future Enhancements
 
----
-
-**Remember**: This is a long-term investment strategy. Be patient, stay disciplined, and let compound growth work in your favor over time.
+- Real-time portfolio tracking
+- Advanced backtesting capabilities
+- Integration with brokers for live trading
+- Enhanced ESG scoring
+- Alternative data sources
+- Machine learning model improvements
+- Mobile app interface
+- Social sentiment analysis
