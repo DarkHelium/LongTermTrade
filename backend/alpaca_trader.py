@@ -4,7 +4,11 @@ from alpaca.trading.requests import MarketOrderRequest
 from alpaca.trading.enums import OrderSide, TimeInForce
 from dotenv import load_dotenv
 
-load_dotenv()
+from pathlib import Path
+
+# Load .env file from the backend directory
+dotenv_path = Path(__file__).parent / '.env'
+load_dotenv(dotenv_path=dotenv_path)
 
 class AlpacaTrader:
     def __init__(self, paper=True):
@@ -12,6 +16,7 @@ class AlpacaTrader:
         api_secret = os.getenv('ALPACA_API_SECRET')
         if not api_key or not api_secret:
             raise ValueError("Alpaca API keys not found in environment variables.")
+        self.paper = paper  # Store paper trading mode as instance attribute
         self.client = TradingClient(api_key, api_secret, paper=paper)
 
     def get_account(self):

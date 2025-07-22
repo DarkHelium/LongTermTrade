@@ -1,0 +1,100 @@
+<div class="chat-container">
+  <!-- Chat Header -->
+  <div class="chat-header">
+    <h2>💼 Long Term Trading Assistant</h2>
+    <p>Get personalized investment advice and portfolio recommendations</p>
+  </div>
+
+  <!-- Chat Messages -->
+  <div class="chat-messages" #chatMessages>
+    @if (messages().length === 0) {
+      <div class="welcome-message">
+        <div class="welcome-icon">🚀</div>
+        <h3>Welcome to Your Trading Assistant!</h3>
+        <p>Ask me about investment strategies, market analysis, or portfolio recommendations.</p>
+        <div class="example-questions">
+          <p><strong>Try asking:</strong></p>
+          <ul>
+            <li>"What are some good long-term investment options?"</li>
+            <li>"Should I invest in tech stocks right now?"</li>
+            <li>"Help me diversify my portfolio"</li>
+          </ul>
+        </div>
+      </div>
+    }
+    @for (msg of messages(); track msg) {
+      <div class="message {{msg.role}}">
+        <div class="message-avatar">
+          @if (msg.role === 'user') {
+            <span>👤</span>
+          } @else {
+            <span>🤖</span>
+          }
+        </div>
+        <div class="message-content">
+          <div class="message-header">
+            <strong>{{msg.role | titlecase}}</strong>
+            <span class="message-time">{{getCurrentTime()}}</span>
+          </div>
+          <div class="message-text" [innerHTML]="parseMarkdown(msg.content)"></div>
+          @if (msg.suggestions && msg.suggestions.length > 0) {
+            <div class="suggestions">
+              <div class="suggestions-header">
+                <span class="suggestions-icon">💡</span>
+                <p>Suggested Investments</p>
+              </div>
+              <div class="suggestions-list">
+                @for (stock of msg.suggestions; track stock) {
+                  <div class="suggestion-item">
+                    <span class="stock-symbol">{{stock.symbol}}</span>
+                    <span class="stock-details">Qty: {{stock.qty}} • {{stock.term}} term</span>
+                  </div>
+                }
+              </div>
+              <button (click)="invest(msg.suggestions)" class="btn btn-primary invest-btn">
+                <span>📈</span> Execute Investments
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-group">
+      <input 
+        type="text" 
+        [(ngModel)]="newMessage" 
+        placeholder="Ask about investments, market trends, or portfolio advice..." 
+        (keydown)="onKeyDown($event)"
+        (keypress)="onKeyPress($event)"
+        class="message-input"
+        #messageInput
+        autocomplete="off"
+        maxlength="500">
+      <button 
+        (click)="sendMessage()" 
+        class="btn btn-primary send-btn"
+        [disabled]="!newMessage.trim()"
+        title="Send message (Enter)">
+        <span class="send-icon">📤</span>
+        <span class="send-text">Send</span>
+      </button>
+    </div>
+    
+    <!-- Trading Mode Toggle -->
+    <div class="form-check">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="isLive" 
+        class="form-check-input"
+        id="liveTrading">
+      <label for="liveTrading" class="form-check-label">
+        <span class="toggle-icon">{{isLive ? '🔴' : '📝'}}</span>
+        {{isLive ? 'Live Trading Mode' : 'Paper Trading Mode'}}
+      </label>
+    </div>
+  </div>
+</div>
