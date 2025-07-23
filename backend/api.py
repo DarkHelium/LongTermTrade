@@ -7,6 +7,7 @@ import os
 import json
 from fin_r1_client import FinR1Client
 from alpaca_trader import AlpacaTrader
+from cnbc_analyzer import CNBCAnalyzer
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
@@ -36,7 +37,12 @@ class ChatRequest(BaseModel):
     query: str
     is_live: bool = False
 
+class CNBCAnalysisRequest(BaseModel):
+    days_back: int = 7
+    min_frequency: int = 3
+
 fin_r1 = FinR1Client()
+cnbc_analyzer = CNBCAnalyzer()
 trader = None  # Will be initialized per request or session
 chat_log = []  # Simple in-memory log; use database for production
 
@@ -59,7 +65,10 @@ async def chat(chat_request: ChatRequest):
     try:
         # Check if query is investment-related
         investment_keywords = ['buy', 'sell', 'invest', 'stock', 'portfolio', 'trade', 'purchase']
+        cnbc_keywords = ['cnbc', 'contrarian', 'sentiment', 'media', 'news', 'pattern', 'opposite']
+        
         is_investment_query = any(keyword in user_query.lower() for keyword in investment_keywords)
+        is_cnbc_query = any(keyword in user_query.lower() for keyword in cnbc_keywords)
         
         # Only initialize trader for investment-related queries
         if is_investment_query:
@@ -69,7 +78,31 @@ async def chat(chat_request: ChatRequest):
         chat_log.append({"role": "user", "content": user_query})
         
         # Create appropriate prompt based on query type
-        if is_investment_query:
+        if is_cnbc_query or 'contrarian' in user_query.lower():
+            # Get CNBC analysis for contrarian queries
+            try:
+                cnbc_analysis = cnbc_analyzer.get_contrarian_recommendations(days_back=7, min_frequency=2)
+                
+                # Create enhanced prompt with CNBC data
+                prompt = f"""User query: {user_query}
+                
+CNBC Contrarian Analysis Data:
+- Articles analyzed: {cnbc_analysis['articles_analyzed']}
+- Patterns found: {cnbc_analysis['patterns_found']}
+- Buy signals: {len(cnbc_analysis['buy_signals'])}
+- Sell signals: {len(cnbc_analysis['sell_signals'])}
+
+Top Buy Signals (Contrarian): {cnbc_analysis['buy_signals'][:3]}
+Top Sell Signals (Contrarian): {cnbc_analysis['sell_signals'][:3]}
+
+Based on this CNBC sentiment analysis showing repetitive patterns, provide contrarian investment advice. 
+Explain how media repetition often signals market extremes and why doing the opposite can be profitable.
+If suggesting specific stocks, format as JSON: {{"stocks": [{{"symbol": "AAPL", "qty": 1, "term": "long"}}]}}"""
+                
+            except Exception as e:
+                prompt = f"User query: {user_query}. Provide contrarian investment advice based on general market sentiment principles. Note: CNBC analysis temporarily unavailable."
+                
+        elif is_investment_query:
             prompt = f"User query: {user_query}. Provide truthful investment advice. If suggesting specific stocks, format as JSON: {{\"stocks\": [{{\"symbol\": \"AAPL\", \"qty\": 1, \"term\": \"long\"}}]}}"
         else:
             prompt = f"User query: {user_query}. Provide helpful and truthful information about financial markets, trends, or general financial advice. Do not suggest specific stock purchases."
@@ -132,3 +165,62 @@ async def invest(investments: list[dict]):
 @app.get("/log")
 def get_log():
     return chat_log
+
+@app.post("/cnbc-analysis")
+async def analyze_cnbc_patterns(request: CNBCAnalysisRequest):
+    """Analyze CNBC articles for repetitive patterns and provide contrarian signals"""
+    try:
+        analysis = cnbc_analyzer.get_contrarian_recommendations(
+            days_back=request.days_back,
+            min_frequency=request.min_frequency
+        )
+        return analysis
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing CNBC patterns: {str(e)}")
+
+@app.get("/cnbc-quick-analysis")
+async def quick_cnbc_analysis():
+    """Quick CNBC analysis with default parameters"""
+    try:
+        analysis = cnbc_analyzer.get_contrarian_recommendations(days_back=3, min_frequency=2)
+        return {
+            "quick_summary": {
+                "total_patterns": analysis["patterns_found"],
+                "buy_signals": len(analysis["buy_signals"]),
+                "sell_signals": len(analysis["sell_signals"]),
+                "articles_analyzed": analysis["articles_analyzed"]
+            },
+            "top_buy_signals": analysis["buy_signals"][:3],
+            "top_sell_signals": analysis["sell_signals"][:3],
+            "analysis_date": analysis["analysis_date"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error in quick CNBC analysis: {str(e)}")
+
+@app.get("/cnbc-stock/{symbol}")
+async def analyze_specific_stock(symbol: str, days_back: int = 7):
+    """Analyze CNBC coverage for a specific stock symbol"""
+    try:
+        # Get full analysis
+        analysis = cnbc_analyzer.get_contrarian_recommendations(days_back=days_back, min_frequency=1)
+        
+        # Filter for specific stock
+        stock_analysis = {
+            "symbol": symbol.upper(),
+            "buy_signals": [s for s in analysis["buy_signals"] if s["stock_symbol"] == symbol.upper()],
+            "sell_signals": [s for s in analysis["sell_signals"] if s["stock_symbol"] == symbol.upper()],
+            "hold_signals": [s for s in analysis["hold_signals"] if s["stock_symbol"] == symbol.upper()],
+            "analysis_date": analysis["analysis_date"],
+            "time_period": f"Last {days_back} days"
+        }
+        
+        if not any([stock_analysis["buy_signals"], stock_analysis["sell_signals"], stock_analysis["hold_signals"]]):
+            return {
+                "symbol": symbol.upper(),
+                "message": f"No significant CNBC coverage found for {symbol.upper()} in the last {days_back} days",
+                "analysis_date": analysis["analysis_date"]
+            }
+        
+        return stock_analysis
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error analyzing {symbol}: {str(e)}")
