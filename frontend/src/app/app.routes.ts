@@ -1,6 +1,12 @@
 import { Routes } from '@angular/router';
-import { Chat } from './chat/chat';
 
 export const routes: Routes = [
-  { path: '', component: Chat }
+  {
+    path: '',
+    loadComponent: () => import('./dashboard/dashboard').then(m => m.Dashboard),
+  },
+  {
+    path: 'chat',
+    loadComponent: () => import('./chat/chat').then(m => m.Chat),
+  },
 ];

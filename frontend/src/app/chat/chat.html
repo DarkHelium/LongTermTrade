@@ -1,8 +1,29 @@
 <div class="chat-container">
   <!-- Chat Header -->
   <div class="chat-header">
-    <h2>💼 Long Term Trading Assistant</h2>
-    <p>Get personalized investment advice and portfolio recommendations</p>
+    <h2>💼 Warren Buffett AI Assistant</h2>
+    <p>Get personalized investment advice using advanced AI agent technology</p>
+    
+    <!-- Agent Controls -->
+    <div class="agent-controls">
+      <div class="control-group">
+        <label class="toggle-switch">
+          <input type="checkbox" [checked]="useAdvancedAgent()" (change)="toggleAgentMode()">
+          <span class="slider"></span>
+          <span class="toggle-label">
+            {{useAdvancedAgent() ? '🧠 Advanced Agent Mode' : '💬 Simple Chat Mode'}}
+          </span>
+        </label>
+      </div>
+      
+      @if (useAdvancedAgent()) {
+        <div class="control-group">
+          <button class="btn btn-outline" (click)="toggleAgentDetails()">
+            {{showAgentDetails() ? '🔽 Hide Agent Details' : '🔼 Show Agent Details'}}
+          </button>
+        </div>
+      }
+    </div>
   </div>
 
   <!-- Chat Messages -->
@@ -10,16 +31,22 @@
     @if (messages().length === 0) {
       <div class="welcome-message">
         <div class="welcome-icon">🚀</div>
-        <h3>Welcome to Your Trading Assistant!</h3>
-        <p>Ask me about investment strategies, market analysis, or portfolio recommendations.</p>
+        <h3>Welcome to Warren Buffett's AI Assistant!</h3>
+        <p>Ask me about investment strategies, stock analysis, or market insights using my value investing principles.</p>
         <div class="example-questions">
           <p><strong>Try asking:</strong></p>
           <ul>
-            <li>"What are some good long-term investment options?"</li>
-            <li>"Should I invest in tech stocks right now?"</li>
-            <li>"Help me diversify my portfolio"</li>
+            <li>"What do you think about Apple stock?"</li>
+            <li>"How do you evaluate a company's economic moat?"</li>
+            <li>"What are your current top stock picks?"</li>
+            <li>"Should I invest in Tesla?"</li>
           </ul>
         </div>
+        @if (useAdvancedAgent()) {
+          <div class="agent-info">
+            <p><strong>🧠 Advanced Agent Mode:</strong> I'll use sophisticated reasoning, multiple tools, and provide detailed analysis traces.</p>
+          </div>
+        }
       </div>
     }
     @for (msg of messages(); track msg) {
@@ -28,20 +55,62 @@
           @if (msg.role === 'user') {
             <span>👤</span>
           } @else {
-            <span>🤖</span>
+            <span>🧠</span>
           }
         </div>
         <div class="message-content">
           <div class="message-header">
-            <strong>{{msg.role | titlecase}}</strong>
+            <strong>{{msg.role === 'user' ? 'You' : 'Warren Buffett'}}</strong>
             <span class="message-time">{{getCurrentTime()}}</span>
+            @if (msg.iterations && msg.iterations > 0) {
+              <span class="iterations-badge">{{msg.iterations}} iterations</span>
+            }
           </div>
           <div class="message-text" [innerHTML]="parseMarkdown(msg.content)"></div>
+          
+          <!-- Agent Details -->
+          @if (showAgentDetails() && msg.role === 'assistant' && (msg.reasoning_traces?.length || msg.tool_usage?.length)) {
+            <div class="agent-details">
+              @if (msg.reasoning_traces && msg.reasoning_traces.length > 0) {
+                <div class="reasoning-section">
+                  <h4>🧠 Reasoning Process</h4>
+                  <div class="reasoning-traces">
+                    @for (trace of msg.reasoning_traces; track trace) {
+                      <div class="trace-item">{{trace}}</div>
+                    }
+                  </div>
+                </div>
+              }
+              
+              @if (msg.tool_usage && msg.tool_usage.length > 0) {
+                <div class="tools-section">
+                  <h4>🔧 Tools Used</h4>
+                  <div class="tool-usage">
+                    @for (tool of msg.tool_usage; track tool) {
+                      <div class="tool-item">
+                        <span class="tool-name">{{tool.tool}}</span>
+                        <span class="tool-input">Input: {{tool.input}}</span>
+                        <span class="tool-result">Result: {{tool.result.substring(0, 100)}}...</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              
+              @if (msg.agent_context) {
+                <div class="context-section">
+                  <h4>📋 Agent Context</h4>
+                  <div class="context-info">{{msg.agent_context}}</div>
+                </div>
+              }
+            </div>
+          }
+          
           @if (msg.suggestions && msg.suggestions.length > 0) {
             <div class="suggestions">
               <div class="suggestions-header">
                 <span class="suggestions-icon">💡</span>
-                <p>Suggested Investments</p>
+                <p>Warren Buffett's Stock Picks</p>
               </div>
               <div class="suggestions-list">
                 @for (stock of msg.suggestions; track stock) {
@@ -67,7 +136,7 @@
       <input 
         type="text" 
         [(ngModel)]="newMessage" 
-        placeholder="Ask about investments, market trends, or portfolio advice..." 
+        placeholder="Ask Warren Buffett about investments, market analysis, or stock picks..." 
         (keydown)="onKeyDown($event)"
         (keypress)="onKeyPress($event)"
         class="message-input"
@@ -84,17 +153,21 @@
       </button>
     </div>
     
-    <!-- Trading Mode Toggle -->
-    <div class="form-check">
-      <input 
-        type="checkbox" 
-        [(ngModel)]="isLive" 
-        class="form-check-input"
-        id="liveTrading">
-      <label for="liveTrading" class="form-check-label">
-        <span class="toggle-icon">{{isLive ? '🔴' : '📝'}}</span>
-        {{isLive ? 'Live Trading Mode' : 'Paper Trading Mode'}}
-      </label>
+    <!-- Mode Information -->
+    <div class="mode-info">
+      <div class="mode-indicator">
+        <span class="mode-icon">{{useAdvancedAgent() ? '🧠' : '💬'}}</span>
+        <span class="mode-text">
+          {{useAdvancedAgent() ? 'Advanced AI Agent with reasoning & tools' : 'Simple chat mode'}}
+        </span>
+      </div>
+      @if (useAdvancedAgent()) {
+        <div class="agent-features">
+          <span class="feature">🔍 Stock Analysis</span>
+          <span class="feature">📊 Market Research</span>
+          <span class="feature">🧠 ReAct Reasoning</span>
+        </div>
+      }
     </div>
   </div>
 </div>
