@@ -1,0 +1,395 @@
+/* Trading App Styles */
+:host {
+  --primary-color: #1a73e8;
+  --primary-dark: #1557b0;
+  --secondary-color: #34a853;
+  --danger-color: #ea4335;
+  --warning-color: #fbbc04;
+  --background-color: #f8f9fa;
+  --surface-color: #ffffff;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --border-color: #dadce0;
+  --shadow-sm: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+  --shadow-md: 0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 2px 6px 2px rgba(60, 64, 67, 0.15);
+  --shadow-lg: 0 2px 4px 0 rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
+  
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.trading-app {
+  min-height: 100vh;
+  background-color: var(--background-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header Styles */
+.app-header {
+  background-color: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  height: 64px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--primary-color);
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Navigation Styles */
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-link {
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.nav-link:hover {
+  background-color: rgba(26, 115, 232, 0.08);
+  color: var(--primary-color);
+}
+
+.nav-link.active {
+  background-color: rgba(26, 115, 232, 0.12);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-btn:hover {
+  background-color: rgba(60, 64, 67, 0.08);
+}
+
+.search-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Chat Toggle Button */
+.chat-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 20px;
+  background-color: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.chat-toggle-btn:hover {
+  background-color: rgba(26, 115, 232, 0.08);
+  color: var(--primary-color);
+}
+
+.chat-toggle-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.chat-toggle-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.shortcut-hint {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* Chat Overlay */
+.chat-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.chat-container {
+  width: 90%;
+  max-width: 900px;
+  height: 80vh;
+  max-height: 700px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.chat-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.close-chat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-chat-btn:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.close-chat-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.profile-avatar:hover {
+  transform: scale(1.05);
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  padding: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 16px;
+  }
+  
+  .main-nav {
+    display: none;
+  }
+  
+  .app-title {
+    font-size: 18px;
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 12px;
+  }
+  
+  .logo-section {
+    gap: 8px;
+  }
+  
+  .logo-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .app-title {
+    font-size: 16px;
+  }
+  
+  .main-content {
+    padding: 12px;
+  }
+}
+
+/* Utility Classes */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  gap: 8px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-dark);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(26, 115, 232, 0.08);
+}
+
+.card {
+  background-color: var(--surface-color);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+.card-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-body {
+  padding: 24px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.text-success {
+  color: var(--secondary-color);
+}
+
+.text-danger {
+  color: var(--danger-color);
+}
+
+.text-warning {
+  color: var(--warning-color);
+}

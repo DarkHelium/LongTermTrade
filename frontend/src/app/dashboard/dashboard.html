@@ -1,0 +1,373 @@
+<div class="dashboard-container">
+  <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1>Warren Buffett's Stock Analysis</h1>
+      
+      <!-- View Switching Tabs -->
+      <div class="view-tabs">
+        <button 
+          class="tab-button" 
+          [class.active]="currentView() === 'buffett'"
+          (click)="switchToBuffettView()"
+        >
+          🎯 Buffett's Picks
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="currentView() === 'popular'"
+          (click)="switchToPopularStocksView()"
+        >
+          🔥 Popular Stocks
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="currentView() === 'all'"
+          (click)="switchToAllStocksView()"
+        >
+          📈 All Stocks
+        </button>
+      </div>
+      
+      <div class="search-container">
+        <input 
+          type="text" 
+          [(ngModel)]="searchQuery" 
+          (input)="searchStocks()"
+          placeholder="Search stocks..."
+          class="search-input"
+        >
+        <div class="search-results" *ngIf="searchResults().length > 0">
+          <div 
+            *ngFor="let stock of searchResults()" 
+            class="search-result-item"
+            (click)="selectStock(stock)"
+          >
+            <span class="symbol">{{ stock.symbol }}</span>
+            <span class="name">{{ stock.name }}</span>
+            <span class="price">{{ formatCurrency(stock.price) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Buffett's Picks View -->
+    <div class="stock-list" *ngIf="!selectedStock() && currentView() === 'buffett'">
+      <div class="loading-spinner" *ngIf="isLoading()">
+        <div class="spinner"></div>
+        <p>Loading Warren Buffett's picks...</p>
+      </div>
+      
+      <div class="stocks-grid" *ngIf="!isLoading()">
+        <div 
+          *ngFor="let stock of buffettPicks()" 
+          class="stock-card"
+          (click)="selectStock(stock)"
+        >
+          <div class="stock-header">
+            <div class="stock-symbol">{{ stock.symbol }}</div>
+            <div class="stock-price">{{ formatCurrency(stock.price) }}</div>
+          </div>
+          <div class="stock-name">{{ stock.name }}</div>
+          <div class="stock-change" [class.positive]="stock.change >= 0" [class.negative]="stock.change < 0">
+            <span class="change-amount">{{ formatCurrency(stock.change) }}</span>
+            <span class="change-percent">{{ formatPercentage(stock.change_percent) }}</span>
+          </div>
+          <div class="stock-metrics">
+            <div class="metric" *ngIf="stock.market_cap">
+              <span class="label">Market Cap</span>
+              <span class="value">{{ formatMarketCap(stock.market_cap) }}</span>
+            </div>
+            <div class="metric" *ngIf="stock.pe_ratio">
+              <span class="label">P/E</span>
+              <span class="value">{{ stock.pe_ratio.toFixed(1) }}</span>
+            </div>
+            <div class="metric" *ngIf="stock.dividend_yield">
+              <span class="label">Dividend</span>
+              <span class="value">{{ formatPercentage(stock.dividend_yield * 100) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popular Stocks View -->
+    <div class="stock-list" *ngIf="!selectedStock() && currentView() === 'popular'">
+      <div class="loading-spinner" *ngIf="isLoadingPopularStocks()">
+        <div class="spinner"></div>
+        <p>Loading popular stocks...</p>
+      </div>
+      
+      <div class="stocks-grid" *ngIf="!isLoadingPopularStocks()">
+        <div 
+          *ngFor="let stock of popularStocks()" 
+          class="stock-card"
+          (click)="selectStock(convertFinnhubToStockInfo(stock))"
+        >
+          <div class="stock-header">
+            <div class="stock-symbol">{{ stock.symbol }}</div>
+            <div class="stock-price">{{ formatCurrency(getQuoteForStock(stock.symbol)?.current_price || 0) }}</div>
+          </div>
+          <div class="stock-name">{{ stock.description }}</div>
+          <div class="stock-change" 
+               [class.positive]="(getQuoteForStock(stock.symbol)?.change || 0) >= 0" 
+               [class.negative]="(getQuoteForStock(stock.symbol)?.change || 0) < 0">
+            <span class="change-amount">{{ formatCurrency(getQuoteForStock(stock.symbol)?.change || 0) }}</span>
+            <span class="change-percent">{{ formatPercentage(getQuoteForStock(stock.symbol)?.percent_change || 0) }}</span>
+          </div>
+          <div class="stock-metrics">
+            <div class="metric">
+              <span class="label">High</span>
+              <span class="value">{{ formatCurrency(getQuoteForStock(stock.symbol)?.high_price || 0) }}</span>
+            </div>
+            <div class="metric">
+              <span class="label">Low</span>
+              <span class="value">{{ formatCurrency(getQuoteForStock(stock.symbol)?.low_price || 0) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Stocks View -->
+    <div class="stock-list" *ngIf="!selectedStock() && currentView() === 'all'">
+      <div class="loading-spinner" *ngIf="isLoadingAllStocks()">
+        <div class="spinner"></div>
+        <p>Loading all stocks...</p>
+      </div>
+      
+      <div class="all-stocks-container" *ngIf="!isLoadingAllStocks()">
+        <div class="stocks-table">
+          <div class="table-header">
+            <div class="header-cell symbol">Symbol</div>
+            <div class="header-cell name">Company Name</div>
+            <div class="header-cell price">Price</div>
+            <div class="header-cell change">Change</div>
+            <div class="header-cell percent">Change %</div>
+          </div>
+          <div class="table-body">
+            <div 
+              *ngFor="let stock of allStocks().slice(0, 100)" 
+              class="table-row"
+              (click)="selectStock(convertFinnhubToStockInfo(stock))"
+            >
+              <div class="table-cell symbol">{{ stock.symbol }}</div>
+              <div class="table-cell name">{{ stock.description }}</div>
+              <div class="table-cell price">{{ formatCurrency(getQuoteForStock(stock.symbol)?.current_price || 0) }}</div>
+              <div class="table-cell change" 
+                   [class.positive]="(getQuoteForStock(stock.symbol)?.change || 0) >= 0" 
+                   [class.negative]="(getQuoteForStock(stock.symbol)?.change || 0) < 0">
+                {{ formatCurrency(getQuoteForStock(stock.symbol)?.change || 0) }}
+              </div>
+              <div class="table-cell percent" 
+                   [class.positive]="(getQuoteForStock(stock.symbol)?.percent_change || 0) >= 0" 
+                   [class.negative]="(getQuoteForStock(stock.symbol)?.percent_change || 0) < 0">
+                {{ formatPercentage(getQuoteForStock(stock.symbol)?.percent_change || 0) }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Detail View -->
+    <div class="stock-detail" *ngIf="selectedStock()">
+      <div class="detail-header">
+        <button class="back-button" (click)="closeStockDetail()">
+          <span class="back-icon">←</span>
+          Back
+        </button>
+        <div class="stock-info">
+          <h2>{{ selectedStock()?.name }}</h2>
+          <div class="symbol-price">
+            <span class="symbol">{{ selectedStock()?.symbol }}</span>
+            <span class="price">{{ formatCurrency(selectedStock()?.price || 0) }}</span>
+          </div>
+          <div class="change-info" [class.positive]="(selectedStock()?.change || 0) >= 0" [class.negative]="(selectedStock()?.change || 0) < 0">
+            {{ formatCurrency(selectedStock()?.change || 0) }} ({{ formatPercentage(selectedStock()?.change_percent || 0) }})
+          </div>
+        </div>
+      </div>
+
+      <!-- Buffett Analysis Buttons -->
+      <div class="analysis-section">
+        <div class="button-container">
+          <button 
+            class="analyze-button" 
+            (click)="analyzeStock(selectedStock()!)"
+            [disabled]="isAnalyzing()"
+          >
+            <span *ngIf="!isAnalyzing()">📊 Analyze with Buffett's Criteria</span>
+            <span *ngIf="isAnalyzing()">
+              <div class="button-spinner"></div>
+              Analyzing...
+            </span>
+          </button>
+          
+          <button 
+            class="ai-score-button" 
+            (click)="scoreWithBuffettAI(selectedStock()!)"
+            [disabled]="isAIScoring()"
+          >
+            <span *ngIf="!isAIScoring()">🤖 Score with Warren Buffett AI</span>
+            <span *ngIf="isAIScoring()">
+              <div class="ai-button-spinner"></div>
+              AI Scoring...
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- AI Score Display -->
+      <div class="ai-score-card" *ngIf="aiScore()">
+        <div class="ai-score-header">
+          <h3>🤖 Warren Buffett AI Analysis</h3>
+          <div class="ai-overall-score" [style.color]="getScoreColor(aiScore()!.overall_score)">
+            {{ aiScore()!.overall_score }}/100
+          </div>
+        </div>
+        
+        <div class="ai-recommendation" [style.color]="getRecommendationColor(aiScore()!.recommendation)">
+          <strong>{{ aiScore()!.recommendation }}</strong>
+        </div>
+
+        <div class="ai-analysis-grid">
+          <div class="ai-criteria-scores">
+            <h4>AI Criteria Analysis</h4>
+            <div class="criteria-item" *ngFor="let item of aiScore()!.criteria_scores | keyvalue">
+              <span class="criteria-name">{{ asString(item.key).replace('_', ' ') | titlecase }}</span>
+              <div class="score-bar">
+                <div class="score-fill" [style.width.%]="asNumber(item.value)" [style.background-color]="getScoreColor(asNumber(item.value))"></div>
+                <span class="score-value">{{ asNumber(item.value).toFixed(0) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-analysis-text">
+            <h4>AI Investment Analysis</h4>
+            <p>{{ aiScore()!.analysis }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Results -->
+      <div class="analysis-results" *ngIf="stockAnalysis()">
+        <div class="buffett-score-card">
+          <div class="score-header">
+            <h3>Warren Buffett Score</h3>
+            <div class="overall-score" [style.color]="getScoreColor(stockAnalysis()!.buffett_score.overall_score)">
+              {{ stockAnalysis()!.buffett_score.overall_score }}/100
+            </div>
+          </div>
+          
+          <div class="criteria-scores">
+            <div class="criteria-item" *ngFor="let item of stockAnalysis()!.buffett_score.criteria_scores | keyvalue">
+              <span class="criteria-name">{{ asString(item.key).replace('_', ' ') | titlecase }}</span>
+              <div class="score-bar">
+                <div class="score-fill" [style.width.%]="asNumber(item.value)" [style.background-color]="getScoreColor(asNumber(item.value))"></div>
+                <span class="score-value">{{ asNumber(item.value).toFixed(0) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="recommendation" [style.color]="getRecommendationColor(stockAnalysis()!.buffett_score.recommendation)">
+            <strong>{{ stockAnalysis()!.buffett_score.recommendation }}</strong>
+          </div>
+        </div>
+
+        <div class="analysis-text">
+          <h4>Buffett's Analysis</h4>
+          <p>{{ stockAnalysis()!.buffett_score.analysis }}</p>
+        </div>
+
+        <div class="financial-metrics">
+          <h4>Key Financial Metrics</h4>
+          <div class="metrics-grid">
+            <div class="metric-card" *ngFor="let metric of getMetricEntries(stockAnalysis()!.financial_metrics)">
+              <span class="metric-label">{{ metric.key.replace('_', ' ') | titlecase }}</span>
+              <span class="metric-value">
+                <ng-container [ngSwitch]="metric.key">
+                  <span *ngSwitchCase="'market_cap'">{{ formatMarketCap(metric.value) }}</span>
+                  <span *ngSwitchCase="'free_cash_flow'">{{ formatMarketCap(metric.value) }}</span>
+                  <span *ngSwitchCase="'pe_ratio'">{{ metric.value?.toFixed(1) || 'N/A' }}</span>
+                  <span *ngSwitchCase="'pb_ratio'">{{ metric.value?.toFixed(1) || 'N/A' }}</span>
+                  <span *ngSwitchCase="'debt_to_equity'">{{ metric.value?.toFixed(1) || 'N/A' }}</span>
+                  <span *ngSwitchCase="'roe'">{{ formatPercentage((metric.value || 0) * 100) }}</span>
+                  <span *ngSwitchCase="'roa'">{{ formatPercentage((metric.value || 0) * 100) }}</span>
+                  <span *ngSwitchCase="'profit_margin'">{{ formatPercentage((metric.value || 0) * 100) }}</span>
+                  <span *ngSwitchCase="'revenue_growth'">{{ formatPercentage((metric.value || 0) * 100) }}</span>
+                  <span *ngSwitchCase="'dividend_yield'">{{ formatPercentage((metric.value || 0) * 100) }}</span>
+                  <span *ngSwitchDefault>{{ metric.value || 'N/A' }}</span>
+                </ng-container>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="competitive-advantages" *ngIf="stockAnalysis()!.competitive_advantages.length > 0">
+          <h4>Competitive Advantages</h4>
+          <ul>
+            <li *ngFor="let advantage of stockAnalysis()!.competitive_advantages">{{ advantage }}</li>
+          </ul>
+        </div>
+
+        <div class="risks" *ngIf="stockAnalysis()!.risks.length > 0">
+          <h4>Investment Risks</h4>
+          <ul>
+            <li *ngFor="let risk of stockAnalysis()!.risks">{{ risk }}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat with Warren Buffett -->
+  <div class="chat-section">
+    <div class="chat-header">
+      <h3>💬 Ask Warren Buffett</h3>
+    </div>
+    
+    <div class="chat-messages">
+      <div 
+        *ngFor="let message of chatMessages()" 
+        class="message"
+        [class.user-message]="message.isUser"
+        [class.ai-message]="!message.isUser"
+      >
+        <div class="message-content">
+          <div class="message-text">{{ message.text }}</div>
+          <div class="message-time">{{ message.timestamp | date:'short' }}</div>
+        </div>
+      </div>
+      
+      <div class="typing-indicator" *ngIf="isChatLoading()">
+        <div class="typing-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span>Warren is thinking...</span>
+      </div>
+    </div>
+    
+    <div class="chat-input">
+      <input 
+        type="text" 
+        [(ngModel)]="currentMessage" 
+        (keyup.enter)="sendChatMessage()"
+        placeholder="Ask Warren about investing..."
+        [disabled]="isChatLoading()"
+      >
+      <button 
+        (click)="sendChatMessage()" 
+        [disabled]="!currentMessage().trim() || isChatLoading()"
+        class="send-button"
+      >
+        Send
+      </button>
+    </div>
+  </div>
+</div>
